@@ -104,6 +104,12 @@ def main() -> int:
             max_pages = 2
         elif "cartoon-generators" in url:
             max_pages = 1
+        elif "writing-generators" in url:
+            max_pages = 12
+        elif "copywriting-assistant" in url:
+            max_pages = 8
+        elif "prompt-generators" in url or "paraphrasing" in url or "storyteller" in url:
+            max_pages = 2
         elif "text-to-image" in url:
             max_pages = 3
         elif "text-to-video" in url:
@@ -171,6 +177,7 @@ def main() -> int:
         audio_main_cats = ("audio editing", "audio text to speech", "music generator", "transcriber")
         image_main_cats = ("design generators", "image generators", "image editing", "text to image")
         art_main_cats = ("cartoon generators", "portrait generators", "avatars generators", "logo generators", "3d generators")
+        text_main_cats = ("prompt generators", "writing generators", "paraphrasing", "storyteller", "copywriting")
         if main_cat == "text to video":
             category = "video"
         elif main_cat in audio_main_cats:
@@ -179,6 +186,8 @@ def main() -> int:
             category = "image"
         elif main_cat in art_main_cats:
             category = "art"
+        elif main_cat in text_main_cats:
+            category = "text"
         else:
             category = main_cat.split()[0] if main_cat else ""
         new_output_tools.append({
@@ -198,6 +207,7 @@ def main() -> int:
     audio_main_cats = ("audio editing", "audio text to speech", "music generator", "transcriber")
     image_main_cats = ("design generators", "image generators", "image editing", "text to image")
     art_main_cats = ("cartoon generators", "portrait generators", "avatars generators", "logo generators", "3d generators")
+    text_main_cats = ("prompt generators", "writing generators", "paraphrasing", "storyteller", "copywriting")
     for i, t in enumerate(output_tools, start=1):
         t["id"] = i
         if t.get("main_category") == "text to video":
@@ -208,6 +218,8 @@ def main() -> int:
             t["category"] = "image"
         elif t.get("main_category") in art_main_cats:
             t["category"] = "art"
+        elif t.get("main_category") in text_main_cats:
+            t["category"] = "text"
 
     if new_output_tools:
         logging.info("Added %d new tools (total: %d)", len(new_output_tools), len(output_tools))

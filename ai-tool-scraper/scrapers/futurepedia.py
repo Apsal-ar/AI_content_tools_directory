@@ -79,6 +79,7 @@ class FuturepediaScraper(BaseScraper):
         "avatar generator": "avatars generators",
         "logo generator": "logo generators",
         "3D generator": "3d generators",
+        "copywriting assistant": "copywriting",
     }
 
     def _main_category_from_url(self, page_url: str) -> str:
