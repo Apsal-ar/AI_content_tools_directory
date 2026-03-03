@@ -13,7 +13,7 @@ export function Header() {
         >
           <Sparkles
             className="h-5 w-5"
-            style={{ color: "var(--fiery-vibrant-orange)" }}
+            style={{ color: "var(--teal-bright)" }}
           />
           <span className="uppercase tracking-wider">AI Tools Directory</span>
         </Link>
@@ -21,13 +21,13 @@ export function Header() {
           <Button
             variant="outline"
             size="sm"
-            className="border-[var(--fiery-vibrant-orange)] text-[var(--fiery-vibrant-orange)] hover:bg-[var(--fiery-vibrant-orange)]/10 hover:text-[var(--fiery-vibrant-orange)]"
+            className="border-[var(--teal-bright)] text-[var(--teal-bright)] hover:bg-[var(--teal-bright)]/10 hover:text-[var(--teal-bright)]"
           >
             Try featured
           </Button>
           <Button
             size="sm"
-            className="bg-[var(--fiery-vibrant-orange)] text-black hover:bg-[var(--fiery-deep-orange)]"
+            className="bg-[var(--teal-bright)] text-black hover:bg-[var(--teal-medium)]"
           >
             Submit tool
           </Button>

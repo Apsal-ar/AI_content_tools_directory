@@ -14,8 +14,8 @@ import {
   type AITool,
 } from "@/lib/data";
 
-const fieryOrange = "var(--fiery-vibrant-orange)";
-const fieryNavy = "var(--fiery-navy)";
+const tealAccent = "var(--teal-bright)";
+const tealDarkBg = "var(--teal-very-dark)";
 
 export function ToolsSection() {
   const [search, setSearch] = useState("");
@@ -46,8 +46,8 @@ export function ToolsSection() {
           <div
             className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-lg border-2"
             style={{
-              borderColor: "rgba(244, 140, 6, 0.4)",
-              boxShadow: "0 0 24px rgba(244, 140, 6, 0.15)",
+              borderColor: "rgba(77, 191, 173, 0.4)",
+              boxShadow: "0 0 24px rgba(77, 191, 173, 0.15)",
             }}
           >
             <svg
@@ -55,7 +55,7 @@ export function ToolsSection() {
               height="24"
               viewBox="0 0 24 24"
               fill="none"
-              stroke={fieryOrange}
+              stroke={tealAccent}
               strokeWidth="1.5"
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -81,7 +81,7 @@ export function ToolsSection() {
           <div className="mt-10 text-center">
             <p
               className="mb-3 text-sm font-medium uppercase tracking-wider"
-              style={{ color: fieryOrange }}
+              style={{ color: tealAccent }}
             >
               Popular tags
             </p>
@@ -100,14 +100,14 @@ export function ToolsSection() {
             <div className="relative w-full sm:max-w-md">
               <Search
                 className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"
-                style={{ color: fieryOrange }}
+                style={{ color: tealAccent }}
               />
               <Input
                 type="search"
                 placeholder="Search..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="border-white/20 bg-white/5 pl-9 text-white placeholder:text-white/50 focus-visible:ring-[var(--fiery-vibrant-orange)]"
+                className="border-white/20 bg-white/5 pl-9 text-white placeholder:text-white/50 focus-visible:ring-[var(--teal-bright)]"
               />
             </div>
             <div className="flex items-center gap-4">
@@ -118,7 +118,7 @@ export function ToolsSection() {
                 variant="link"
                 size="sm"
                 onClick={handleReset}
-                className="h-auto p-0 text-[var(--fiery-vibrant-orange)] hover:text-[var(--fiery-golden)]"
+                className="h-auto p-0 text-[var(--teal-bright)] hover:text-[var(--teal-medium)]"
               >
                 Reset
               </Button>
@@ -130,7 +130,7 @@ export function ToolsSection() {
       {/* Tools Grid - dark navy background */}
       <section
         className="container mx-auto px-4 py-12 sm:px-6 lg:px-8"
-        style={{ background: fieryNavy }}
+        style={{ background: tealDarkBg }}
       >
         <div className="mx-auto max-w-6xl">
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

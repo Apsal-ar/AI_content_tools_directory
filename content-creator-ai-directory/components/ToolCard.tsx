@@ -26,7 +26,7 @@ export function ToolCard({ tool, variant = "default" }: ToolCardProps) {
       className={cn(
         "flex h-full flex-col transition-shadow hover:shadow-md",
         isDark &&
-          "border-white/10 bg-white/5 text-white hover:border-[var(--fiery-vibrant-orange)]/30"
+          "border-white/10 bg-white/5 text-white hover:border-[var(--teal-bright)]/30"
       )}
     >
       <CardHeader className="flex flex-row items-start gap-4">
@@ -34,7 +34,7 @@ export function ToolCard({ tool, variant = "default" }: ToolCardProps) {
           className={cn(
             "flex h-12 w-12 shrink-0 items-center justify-center rounded-lg",
             isDark
-              ? "bg-[var(--fiery-maroon)]/50 text-[var(--fiery-vibrant-orange)]"
+              ? "bg-[var(--teal-dark)]/50 text-[var(--teal-bright)]"
               : "bg-muted text-muted-foreground"
           )}
         >
@@ -51,7 +51,7 @@ export function ToolCard({ tool, variant = "default" }: ToolCardProps) {
               variant={isDark ? "outline" : "secondary"}
               className={cn(
                 "text-xs",
-                isDark && "border-[var(--fiery-vibrant-orange)]/50 text-[var(--fiery-vibrant-orange)]"
+                isDark && "border-[var(--teal-bright)]/50 text-[var(--teal-bright)]"
               )}
             >
               {tool.category}
@@ -82,7 +82,7 @@ export function ToolCard({ tool, variant = "default" }: ToolCardProps) {
           asChild
           className={
             isDark
-              ? "border-[var(--fiery-vibrant-orange)] text-[var(--fiery-vibrant-orange)] hover:bg-[var(--fiery-vibrant-orange)]/10"
+              ? "border-[var(--teal-bright)] text-[var(--teal-bright)] hover:bg-[var(--teal-bright)]/10"
               : undefined
           }
         >

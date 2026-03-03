@@ -24,8 +24,8 @@ export function CategoryFilter({
       "shrink-0 rounded-full",
       isDark &&
         (isActive
-          ? "bg-[var(--fiery-vibrant-orange)] text-black border-[var(--fiery-vibrant-orange)] hover:bg-[var(--fiery-deep-orange)]"
-          : "border-[var(--fiery-vibrant-orange)]/60 bg-transparent text-white hover:bg-white/10 hover:border-[var(--fiery-vibrant-orange)]")
+          ? "bg-[var(--teal-bright)] text-black border-[var(--teal-bright)] hover:bg-[var(--teal-medium)]"
+          : "border-[var(--teal-bright)]/60 bg-transparent text-white hover:bg-white/10 hover:border-[var(--teal-bright)]")
     );
 
   return (
