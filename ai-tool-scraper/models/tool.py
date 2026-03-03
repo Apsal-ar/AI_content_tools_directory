@@ -11,8 +11,9 @@ class ToolListing(BaseModel):
 
     name: str = Field(..., description="Tool name")
     description: str = Field(default="", description="Short or long description")
-    url: Optional[str] = Field(default=None, description="Tool website URL")
-    category: list[str] = Field(default_factory=list, description="Categories/tags")
+    url: Optional[str] = Field(default=None, description="Tool website URL (cleaned)")
+    category: list[str] = Field(default_factory=list, description="Subcategories/tags")
+    main_category: str = Field(default="", description="Main page category (e.g. video enhancer)")
     pricing: str = Field(default="unknown", description="free, freemium, paid, subscription, contact")
     features: list[str] = Field(default_factory=list, description="Feature list")
     logo_url: Optional[str] = Field(default=None, description="Logo image URL")

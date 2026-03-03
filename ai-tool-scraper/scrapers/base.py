@@ -26,6 +26,7 @@ class ScraperConfig:
     max_delay: float = 3.0
     save_raw: bool = False
     raw_dir: Path = Path("output/raw")
+    max_pages: int | None = None  # Limit pagination; None = no limit
 
 
 class BaseScraper(ABC):

@@ -17,7 +17,7 @@ SCRAPERS = {
 
 DEFAULT_OUTPUT = Path("output")
 DEFAULT_URLS = {
-    "futurepedia": "https://www.futurepedia.io/ai-tools/video-enhancer",
+    "futurepedia": "https://www.futurepedia.io/ai-tools/video-editing",
 }
 
 
@@ -64,6 +64,12 @@ def main() -> int:
         help="Save raw HTML snapshots",
     )
     parser.add_argument(
+        "--max-pages",
+        type=int,
+        default=None,
+        help="Max pagination pages to scrape (default: 2 for video-enhancer, 8 for video-editing)",
+    )
+    parser.add_argument(
         "-v",
         "--verbose",
         action="store_true",
@@ -78,16 +84,35 @@ def main() -> int:
         logging.error("No URL specified and no default for %s", args.site)
         return 1
 
+    max_pages = args.max_pages
+    if max_pages is None:
+        max_pages = 8 if "video-editing" in url else 2
+
     config = ScraperConfig(
         use_playwright=args.playwright,
         save_raw=args.save_raw,
         raw_dir=args.output_dir / "raw",
+        max_pages=max_pages,
     )
 
     scraper_class = SCRAPERS[args.site]
     scraper = scraper_class(config)
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
+
+    # Load existing aggregated output (append mode: never replace, only add new tools)
+    json_path = args.output_dir / f"{args.site}_tools.json"
+    existing_tools: list[dict] = []
+    if json_path.exists():
+        try:
+            with open(json_path, encoding="utf-8") as f:
+                existing_tools = json.load(f)
+            logging.info("Loaded %d existing tools from %s", len(existing_tools), json_path)
+        except (json.JSONDecodeError, OSError) as e:
+            logging.warning("Could not load existing output: %s", e)
+
+    seen = {(t["name"], t["main_category"]) for t in existing_tools}
+
     tools: list[dict] = []
     failed = 0
 
@@ -101,32 +126,58 @@ def main() -> int:
 
     if not tools:
         logging.warning("No tools scraped")
+        if existing_tools:
+            logging.info("Keeping %d existing tools", len(existing_tools))
         return 0
+
+    # Derive source name for "sourced" column
+    source_site = tools[0].get("source_site", args.site) if tools else args.site
+    sourced = source_site.split(".")[0] if "." in source_site else source_site  # "futurepedia.io" -> "futurepedia"
+
+    # Transform new tools to output format and filter duplicates
+    new_output_tools: list[dict] = []
+    for t in tools:
+        main_cat = t.get("main_category", "")
+        if (t["name"], main_cat) in seen:
+            continue
+        seen.add((t["name"], main_cat))
+        category = main_cat.split()[0] if main_cat else ""
+        new_output_tools.append({
+            "name": t["name"],
+            "description": t["description"],
+            "url": t.get("url") or "",
+            "category": category,
+            "main_category": main_cat,
+            "subcategories": t.get("category", []),
+            "pricing": t.get("pricing", ""),
+            "scraped_at": t.get("scraped_at", ""),
+            "sourced": sourced,
+        })
+
+    # Merge existing + new, re-assign ids
+    output_tools = existing_tools + new_output_tools
+    for i, t in enumerate(output_tools, start=1):
+        t["id"] = i
+
+    if new_output_tools:
+        logging.info("Added %d new tools (total: %d)", len(new_output_tools), len(output_tools))
 
     # Write JSON
     json_path = args.output_dir / f"{args.site}_tools.json"
     with open(json_path, "w", encoding="utf-8") as f:
-        json.dump(tools, f, indent=2, ensure_ascii=False)
-    logging.info("Wrote %d tools to %s", len(tools), json_path)
+        json.dump(output_tools, f, indent=2, ensure_ascii=False)
+    logging.info("Wrote %d tools to %s", len(output_tools), json_path)
 
     # Write CSV
     csv_path = args.output_dir / f"{args.site}_tools.csv"
-    if tools:
-        fieldnames = list(tools[0].keys())
-        with open(csv_path, "w", encoding="utf-8", newline="") as f:
-            writer = csv.DictWriter(f, fieldnames=fieldnames)
-            writer.writeheader()
-            for t in tools:
-                row = {}
-                for k, v in t.items():
-                    if isinstance(v, list):
-                        row[k] = "|".join(str(x) for x in v)
-                    elif v is None:
-                        row[k] = ""
-                    else:
-                        row[k] = v
-                writer.writerow(row)
-        logging.info("Wrote CSV to %s", csv_path)
+    fieldnames = ["id", "name", "description", "url", "category", "main_category", "subcategories", "pricing", "scraped_at", "sourced"]
+    with open(csv_path, "w", encoding="utf-8", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction="ignore")
+        writer.writeheader()
+        for t in output_tools:
+            row = {**t, "subcategories": "|".join(t["subcategories"]) if t["subcategories"] else ""}
+            writer.writerow(row)
+    logging.info("Wrote CSV to %s", csv_path)
 
     if failed:
         logging.info("Skipped %d items due to errors", failed)

@@ -28,6 +28,9 @@ class FuturepediaScraper(BaseScraper):
     def get_listing_urls(self, start_url: str) -> Iterator[str]:
         """Yield listing page URLs (base page + paginated pages)."""
         yield start_url
+        max_pages = getattr(self.config, "max_pages", None)
+        if max_pages is not None and max_pages <= 1:
+            return
         html = self.fetch_html(start_url)
         if not html:
             return
@@ -36,6 +39,8 @@ class FuturepediaScraper(BaseScraper):
         base_path = f"{parsed.scheme}://{parsed.netloc}{parsed.path}"
         page = 2
         while True:
+            if max_pages is not None and page > max_pages:
+                break
             next_url = f"{base_path}?page={page}"
             next_html = self.fetch_html(next_url)
             if not next_html:
@@ -69,14 +74,31 @@ class FuturepediaScraper(BaseScraper):
             return float(m.group(1)), int(m.group(2))
         return None, None
 
+    def _main_category_from_url(self, page_url: str) -> str:
+        """Extract main category from page URL path (e.g. /ai-tools/video-enhancer -> 'video enhancer')."""
+        parsed = urlparse(page_url)
+        parts = parsed.path.strip("/").split("/")
+        if len(parts) >= 2:
+            return parts[-1].replace("-", " ")
+        return ""
+
+    def _clean_url(self, url: str | None) -> str:
+        """Remove UTM and affiliate params from URL (everything from ?utm_source=...)."""
+        if not url:
+            return ""
+        if "utm_source" in url:
+            url = url.split("?")[0]  # Drop entire query string when UTM present
+        return url
+
     def parse_listing_page(self, html: str, page_url: str) -> list[ToolListing]:
         """Parse a Futurepedia listing page into ToolListing objects."""
         soup = BeautifulSoup(html, "html.parser")
         cards = soup.select("div.bg-card.rounded-xl")
+        main_category = self._main_category_from_url(page_url)
         tools: list[ToolListing] = []
         for card in cards:
             try:
-                tool = self._parse_card(card)
+                tool = self._parse_card(card, main_category=main_category)
                 if tool:
                     tools.append(tool)
             except Exception as e:
@@ -88,7 +110,7 @@ class FuturepediaScraper(BaseScraper):
                 logger.warning("Skipped tool %s: %s", name_guess, e)
         return tools
 
-    def _parse_card(self, card) -> ToolListing | None:
+    def _parse_card(self, card, main_category: str = "") -> ToolListing | None:
         """Parse a single tool card."""
         # Name: from tool link with non-trivial text
         name = ""
@@ -106,13 +128,14 @@ class FuturepediaScraper(BaseScraper):
         img = card.select_one('img[alt*="logo"]')
         logo_url = img.get("src") if img else None
 
-        # Visit URL (external)
+        # Visit URL (external) - stored raw; will be cleaned in output
         visit_link = card.find("a", href=lambda h: h and "utm_source=futurepedia" in (h or ""))
-        url = visit_link.get("href") if visit_link else tool_page_url
+        raw_url = visit_link.get("href") if visit_link else tool_page_url
+        url = self._clean_url(raw_url) if raw_url else tool_page_url
 
-        # Tags / category
+        # Subcategories (tags from page; main_category comes from page URL)
         tag_links = card.select('a[href*="/ai-tools/"]')
-        category = [a.get_text(strip=True).lstrip("#") for a in tag_links if a.get_text(strip=True)]
+        subcategories = [a.get_text(strip=True).lstrip("#") for a in tag_links if a.get_text(strip=True)]
 
         # Pricing
         raw_text = card.get_text()
@@ -138,9 +161,10 @@ class FuturepediaScraper(BaseScraper):
             name=name,
             description=description,
             url=url,
-            category=category,
+            category=subcategories,
+            main_category=main_category,
             pricing=pricing,
-            features=[],  # Futurepedia listing page doesn't show features; could fetch tool page
+            features=[],
             logo_url=logo_url,
             rating=rating,
             review_count=review_count,
