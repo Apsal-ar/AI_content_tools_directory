@@ -1,8 +1,7 @@
 import Link from "next/link";
-import { Sparkles } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { LogoParticleBurst } from "@/components/LogoParticleBurst";
+import MandalaLogo from "@/components/MandalaLogo";
 
 export function Header() {
   return (
@@ -12,12 +11,7 @@ export function Header() {
           href="/"
           className="flex items-center gap-3 text-lg font-semibold tracking-tight text-white hover:opacity-90"
         >
-          <LogoParticleBurst width={44} height={44}>
-            <Sparkles
-              className="h-6 w-6"
-              style={{ color: "var(--teal-bright)" }}
-            />
-          </LogoParticleBurst>
+          <MandalaLogo size={44} />
           <span className="uppercase tracking-wider">AI Tools Directory</span>
         </Link>
         <div className="flex items-center gap-2">
