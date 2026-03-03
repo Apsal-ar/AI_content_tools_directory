@@ -67,7 +67,7 @@ def main() -> int:
         "--max-pages",
         type=int,
         default=None,
-        help="Max pagination pages to scrape (default: 2 for video-enhancer, 8 for video-editing)",
+        help="Max pagination pages (default: 2 video-enhancer, 8 video-editing, 10 video-generators, 4 text-to-video)",
     )
     parser.add_argument(
         "-v",
@@ -86,7 +86,34 @@ def main() -> int:
 
     max_pages = args.max_pages
     if max_pages is None:
-        max_pages = 8 if "video-editing" in url else 2
+        if "design-generators" in url:
+            max_pages = 14
+        elif "image-generators" in url:
+            max_pages = 11
+        elif "image-editing" in url:
+            max_pages = 10
+        elif "video-editing" in url:
+            max_pages = 8
+        elif "video-generators" in url:
+            max_pages = 10
+        elif "3D-generator" in url or "3d-generator" in url:
+            max_pages = 4
+        elif "portrait-generators" in url or "avatar-generator" in url:
+            max_pages = 3
+        elif "logo-generator" in url:
+            max_pages = 2
+        elif "cartoon-generators" in url:
+            max_pages = 1
+        elif "text-to-image" in url:
+            max_pages = 3
+        elif "text-to-video" in url:
+            max_pages = 4
+        elif "transcriber" in url:
+            max_pages = 6
+        elif "audio-editing" in url or "text-to-speech" in url or "music-generator" in url:
+            max_pages = 4
+        else:
+            max_pages = 2
 
     config = ScraperConfig(
         use_playwright=args.playwright,
@@ -141,7 +168,19 @@ def main() -> int:
         if (t["name"], main_cat) in seen:
             continue
         seen.add((t["name"], main_cat))
-        category = main_cat.split()[0] if main_cat else ""
+        audio_main_cats = ("audio editing", "audio text to speech", "music generator", "transcriber")
+        image_main_cats = ("design generators", "image generators", "image editing", "text to image")
+        art_main_cats = ("cartoon generators", "portrait generators", "avatars generators", "logo generators", "3d generators")
+        if main_cat == "text to video":
+            category = "video"
+        elif main_cat in audio_main_cats:
+            category = "audio"
+        elif main_cat in image_main_cats:
+            category = "image"
+        elif main_cat in art_main_cats:
+            category = "art"
+        else:
+            category = main_cat.split()[0] if main_cat else ""
         new_output_tools.append({
             "name": t["name"],
             "description": t["description"],
@@ -156,8 +195,19 @@ def main() -> int:
 
     # Merge existing + new, re-assign ids
     output_tools = existing_tools + new_output_tools
+    audio_main_cats = ("audio editing", "audio text to speech", "music generator", "transcriber")
+    image_main_cats = ("design generators", "image generators", "image editing", "text to image")
+    art_main_cats = ("cartoon generators", "portrait generators", "avatars generators", "logo generators", "3d generators")
     for i, t in enumerate(output_tools, start=1):
         t["id"] = i
+        if t.get("main_category") == "text to video":
+            t["category"] = "video"
+        elif t.get("main_category") in audio_main_cats:
+            t["category"] = "audio"
+        elif t.get("main_category") in image_main_cats:
+            t["category"] = "image"
+        elif t.get("main_category") in art_main_cats:
+            t["category"] = "art"
 
     if new_output_tools:
         logging.info("Added %d new tools (total: %d)", len(new_output_tools), len(output_tools))

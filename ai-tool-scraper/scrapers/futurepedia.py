@@ -74,12 +74,20 @@ class FuturepediaScraper(BaseScraper):
             return float(m.group(1)), int(m.group(2))
         return None, None
 
+    MAIN_CATEGORY_OVERRIDES = {
+        "text to speech": "audio text to speech",
+        "avatar generator": "avatars generators",
+        "logo generator": "logo generators",
+        "3D generator": "3d generators",
+    }
+
     def _main_category_from_url(self, page_url: str) -> str:
         """Extract main category from page URL path (e.g. /ai-tools/video-enhancer -> 'video enhancer')."""
         parsed = urlparse(page_url)
         parts = parsed.path.strip("/").split("/")
         if len(parts) >= 2:
-            return parts[-1].replace("-", " ")
+            raw = parts[-1].replace("-", " ")
+            return self.MAIN_CATEGORY_OVERRIDES.get(raw, raw)
         return ""
 
     def _clean_url(self, url: str | None) -> str:
