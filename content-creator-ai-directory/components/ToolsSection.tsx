@@ -6,6 +6,7 @@ import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { CategoryFilter } from "@/components/CategoryFilter";
+import { LogoParticleBurst } from "@/components/LogoParticleBurst";
 import { ToolCard } from "@/components/ToolCard";
 import {
   AI_TOOLS,
@@ -15,7 +16,6 @@ import {
 } from "@/lib/data";
 
 const tealAccent = "var(--teal-bright)";
-const tealDarkBg = "var(--teal-very-dark)";
 
 export function ToolsSection() {
   const [search, setSearch] = useState("");
@@ -23,10 +23,12 @@ export function ToolsSection() {
 
   const filteredTools = useMemo(() => {
     return AI_TOOLS.filter((tool: AITool) => {
+      const searchLower = search.toLowerCase();
       const matchesSearch =
         search === "" ||
-        tool.name.toLowerCase().includes(search.toLowerCase()) ||
-        tool.description.toLowerCase().includes(search.toLowerCase());
+        tool.name.toLowerCase().includes(searchLower) ||
+        tool.description.toLowerCase().includes(searchLower) ||
+        tool.tags.some((tag) => tag.toLowerCase().includes(searchLower));
       const matchesCategory = category === "All" || tool.category === category;
       return matchesSearch && matchesCategory;
     });
@@ -40,30 +42,34 @@ export function ToolsSection() {
   return (
     <div className="min-h-screen">
       {/* Hero Section - black background */}
-      <section className="bg-black px-4 py-16 sm:px-6 lg:px-8">
+      <section className="bg-black px-4 pt-24 pb-16 sm:px-6 sm:pt-28 lg:px-8 lg:pt-32">
         <div className="mx-auto max-w-4xl">
-          {/* Subtle icon */}
-          <div
-            className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-lg border-2"
-            style={{
-              borderColor: "rgba(77, 191, 173, 0.4)",
-              boxShadow: "0 0 24px rgba(77, 191, 173, 0.15)",
-            }}
-          >
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke={tealAccent}
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="opacity-80"
-            >
-              <path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5L12 3z" />
-              <path d="M12 12l1.5 4.5L18 18l-4.5 1.5L12 21l-1.5-4.5L6 18l4.5-1.5L12 12z" />
-            </svg>
+          {/* Logo with particle burst on hover */}
+          <div className="mb-12 flex justify-center sm:mb-16">
+            <LogoParticleBurst width={72} height={72} className="shrink-0">
+              <div
+                className="flex h-14 w-14 items-center justify-center rounded-lg border-2"
+                style={{
+                  borderColor: "rgba(0, 245, 212, 0.6)",
+                  boxShadow: "var(--neon-glow)",
+                }}
+              >
+                <svg
+                  width="28"
+                  height="28"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke={tealAccent}
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="opacity-80"
+                >
+                  <path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5L12 3z" />
+                  <path d="M12 12l1.5 4.5L18 18l-4.5 1.5L12 21l-1.5-4.5L6 18l4.5-1.5L12 12z" />
+                </svg>
+              </div>
+            </LogoParticleBurst>
           </div>
 
           {/* Title and subtitle */}
@@ -127,11 +133,8 @@ export function ToolsSection() {
         </div>
       </section>
 
-      {/* Tools Grid - dark navy background */}
-      <section
-        className="container mx-auto px-4 py-12 sm:px-6 lg:px-8"
-        style={{ background: tealDarkBg }}
-      >
+      {/* Tools Grid - black background */}
+      <section className="container mx-auto bg-black px-4 py-12 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-6xl">
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {filteredTools.map((tool) => (

@@ -60,12 +60,21 @@ export default async function ToolPage({ params }: ToolPageProps) {
                   >
                     {tool.pricing}
                   </Badge>
+                  {tool.tags.map((tag) => (
+                    <Badge
+                      key={tag}
+                      variant="outline"
+                      className="border-[var(--teal-medium)]/50 text-[var(--teal-light)]"
+                    >
+                      {tag}
+                    </Badge>
+                  ))}
                 </div>
               </div>
               <p className="text-white/70">{tool.description}</p>
               <Button
                 asChild
-                className="bg-[var(--teal-bright)] text-black hover:bg-[var(--teal-medium)]"
+                className="bg-[var(--teal-bright)] text-black shadow-[var(--neon-glow)] hover:bg-[var(--teal-light)]"
               >
                 <a
                   href={tool.websiteUrl}

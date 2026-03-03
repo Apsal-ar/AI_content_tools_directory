@@ -21,11 +21,11 @@ export function CategoryFilter({
 
   const buttonClass = (isActive: boolean) =>
     cn(
-      "shrink-0 rounded-full",
+      "shrink-0 rounded-full transition-all duration-200",
       isDark &&
         (isActive
-          ? "bg-[var(--teal-bright)] text-black border-[var(--teal-bright)] hover:bg-[var(--teal-medium)]"
-          : "border-[var(--teal-bright)]/60 bg-transparent text-white hover:bg-white/10 hover:border-[var(--teal-bright)]")
+          ? "bg-[var(--teal-bright)] text-black border-[var(--teal-bright)] shadow-[var(--neon-glow)] hover:bg-[var(--teal-light)] hover:shadow-[var(--neon-glow-strong)]"
+          : "border-[var(--teal-bright)]/50 bg-transparent text-white hover:bg-[var(--teal-bright)]/10 hover:border-[var(--teal-bright)]")
     );
 
   return (

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ExternalLink } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import {
@@ -11,6 +12,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { WebsitePreview } from "@/components/WebsitePreview";
 import type { AITool } from "@/lib/data";
 
 interface ToolCardProps {
@@ -24,11 +26,16 @@ export function ToolCard({ tool, variant = "default" }: ToolCardProps) {
   return (
     <Card
       className={cn(
-        "flex h-full flex-col transition-shadow hover:shadow-md",
+        "flex h-full flex-col overflow-hidden transition-all duration-200",
         isDark &&
-          "border-white/10 bg-white/5 text-white hover:border-[var(--teal-bright)]/30"
+          "border-[var(--teal-bright)]/40 bg-white/5 text-white hover:border-[var(--teal-bright)] hover:shadow-[var(--neon-glow)]"
       )}
     >
+      <WebsitePreview
+        websiteUrl={tool.websiteUrl}
+        alt={tool.name}
+        className="aspect-video w-full shrink-0"
+      />
       <CardHeader className="flex flex-row items-start gap-4">
         <div
           className={cn(
@@ -65,6 +72,18 @@ export function ToolCard({ tool, variant = "default" }: ToolCardProps) {
             >
               {tool.pricing}
             </Badge>
+            {tool.tags.map((tag) => (
+              <Badge
+                key={tag}
+                variant="outline"
+                className={cn(
+                  "text-xs font-normal",
+                  isDark && "border-[var(--teal-medium)]/50 text-[var(--teal-light)]"
+                )}
+              >
+                {tag}
+              </Badge>
+            ))}
           </div>
         </div>
       </CardHeader>
@@ -75,7 +94,7 @@ export function ToolCard({ tool, variant = "default" }: ToolCardProps) {
           {tool.description}
         </CardDescription>
       </CardContent>
-      <CardFooter>
+      <CardFooter className="flex flex-wrap gap-2">
         <Button
           variant="outline"
           size="sm"
@@ -87,6 +106,26 @@ export function ToolCard({ tool, variant = "default" }: ToolCardProps) {
           }
         >
           <Link href={`/tools/${tool.slug}`}>View details</Link>
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          asChild
+          className={
+            isDark
+              ? "border-[var(--teal-medium)] text-[var(--teal-light)] hover:bg-[var(--teal-medium)]/20"
+              : undefined
+          }
+        >
+          <a
+            href={tool.websiteUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5"
+          >
+            <ExternalLink className="h-3.5 w-3.5" />
+            Visit website
+          </a>
         </Button>
       </CardFooter>
     </Card>
