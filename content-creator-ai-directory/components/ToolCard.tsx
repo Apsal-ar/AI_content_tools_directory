@@ -26,17 +26,29 @@ export function ToolCard({ tool, variant = "default" }: ToolCardProps) {
   return (
     <Card
       className={cn(
-        "flex h-full flex-col overflow-hidden transition-all duration-200",
+        "flex h-full flex-col overflow-hidden transition-all duration-200 rounded-sm",
         isDark &&
           "border-[var(--teal-bright)]/40 bg-white/5 text-white hover:border-[var(--teal-bright)] hover:shadow-[var(--neon-glow)]"
       )}
     >
-      <WebsitePreview
-        websiteUrl={tool.websiteUrl}
-        alt={tool.name}
-        className="aspect-video w-full shrink-0"
+      {/* Top part: screenshot with margin inside */}
+      <div className="shrink-0">
+        <div className="p-[5%]">
+          <WebsitePreview
+            websiteUrl={tool.websiteUrl}
+            alt={tool.name}
+            className="aspect-video mx-auto w-[90%] overflow-hidden rounded-sm"
+          />
+        </div>
+      </div>
+      {/* Teal separator */}
+      <div
+        className="h-px shrink-0 bg-[var(--teal-bright)]/60"
+        aria-hidden
       />
-      <CardHeader className="space-y-2">
+      {/* Bottom part: text content */}
+      <div className="flex min-w-0 flex-1 flex-col">
+      <CardHeader className="space-y-0">
         <div className="flex items-center justify-between gap-2">
           <CardTitle className="line-clamp-1 min-w-0 flex-1 text-xl">
             <Link href={`/tools/${tool.slug}`} className="hover:underline">
@@ -53,6 +65,13 @@ export function ToolCard({ tool, variant = "default" }: ToolCardProps) {
             {tool.pricing}
           </Badge>
         </div>
+      </CardHeader>
+      <CardContent className="flex-1 space-y-3">
+        <CardDescription
+          className={cn("line-clamp-2", isDark && "text-white/70")}
+        >
+          {tool.description}
+        </CardDescription>
         <div className="flex flex-wrap gap-1.5">
           <Badge
             variant={isDark ? "outline" : "secondary"}
@@ -76,27 +95,8 @@ export function ToolCard({ tool, variant = "default" }: ToolCardProps) {
             </Badge>
           ))}
         </div>
-      </CardHeader>
-      <CardContent className="flex-1">
-        <CardDescription
-          className={cn("line-clamp-2", isDark && "text-white/70")}
-        >
-          {tool.description}
-        </CardDescription>
       </CardContent>
-      <CardFooter className="flex flex-wrap gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          asChild
-          className={
-            isDark
-              ? "border-[var(--teal-bright)] text-[var(--teal-bright)] hover:bg-[var(--teal-bright)]/10"
-              : undefined
-          }
-        >
-          <Link href={`/tools/${tool.slug}`}>View details</Link>
-        </Button>
+      <CardFooter className="flex justify-end">
         <Button
           variant="outline"
           size="sm"
@@ -118,6 +118,7 @@ export function ToolCard({ tool, variant = "default" }: ToolCardProps) {
           </a>
         </Button>
       </CardFooter>
+      </div>
     </Card>
   );
 }
