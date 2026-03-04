@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Search, Filter, ChevronDown } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
@@ -49,6 +49,8 @@ export function ToolsSection() {
     CategoryFilterValue[]
   >([]);
   const [sort, setSort] = useState<SortOption>("newest");
+  const [sortSelectMounted, setSortSelectMounted] = useState(false);
+  useEffect(() => setSortSelectMounted(true), []);
 
   const filteredTools = useMemo(() => {
     let list = AI_TOOLS.filter((tool: AITool) => {
@@ -293,23 +295,29 @@ export function ToolsSection() {
               </Popover>
             </div>
 
-            {/* 4. Sort + count + Reset */}
+            {/* 4. Sort + count + Reset - Sort Select rendered only after mount to avoid hydration mismatch from browser extensions (e.g. data-sharkid) */}
             <div className="flex flex-1 flex-wrap items-center justify-end gap-2 py-2 pl-4 pr-3 sm:flex-nowrap sm:gap-3 sm:py-0">
-              <Select value={sort} onValueChange={(v) => setSort(v as SortOption)}>
-                <SelectTrigger
-                  className={`w-full gap-2 sm:w-auto ${selectTriggerClass} pl-0`}
-                >
-                  <SelectValue placeholder="Sort" />
-                </SelectTrigger>
-                <SelectContent className="border-white/20 bg-black text-white">
-                  <SelectItem value="newest" className="focus:bg-white/10 focus:text-white">
-                    Newest to oldest
-                  </SelectItem>
-                  <SelectItem value="popularity" className="focus:bg-white/10 focus:text-white">
-                    Popularity
-                  </SelectItem>
-                </SelectContent>
-              </Select>
+              {sortSelectMounted ? (
+                <Select value={sort} onValueChange={(v) => setSort(v as SortOption)}>
+                  <SelectTrigger
+                    className={`w-full gap-2 sm:w-auto ${selectTriggerClass} pl-0`}
+                  >
+                    <SelectValue placeholder="Sort" />
+                  </SelectTrigger>
+                  <SelectContent className="border-white/20 bg-black text-white">
+                    <SelectItem value="newest" className="focus:bg-white/10 focus:text-white">
+                      Newest to oldest
+                    </SelectItem>
+                    <SelectItem value="popularity" className="focus:bg-white/10 focus:text-white">
+                      Popularity
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              ) : (
+                <span className="min-h-9 py-2 text-white/90 sm:py-0">
+                  {sort === "newest" ? "Newest to oldest" : "Popularity"}
+                </span>
+              )}
               <span className="text-sm text-white/70">
                 {filteredTools.length} tools
               </span>
