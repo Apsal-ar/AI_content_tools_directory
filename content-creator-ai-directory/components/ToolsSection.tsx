@@ -1,43 +1,129 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Search } from "lucide-react";
+import { Search, Filter, ChevronDown } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
 import { CategoryFilter } from "@/components/CategoryFilter";
 import MandalaLogo from "@/components/MandalaLogo";
 import { ToolCard } from "@/components/ToolCard";
 import {
   AI_TOOLS,
   CATEGORIES,
-  type ToolCategory,
+  ROLES,
+  CATEGORY_FILTER_OPTIONS,
+  getToolRole,
+  toolMatchesCategoryFilter,
   type AITool,
+  type Role,
+  type CategoryFilterValue,
+  type SortOption,
+  type ToolCategory,
 } from "@/lib/data";
+import { cn } from "@/lib/utils";
 
 const tealAccent = "var(--teal-bright)";
 
+const filterBarBorder = "border border-white/20";
+const filterBarDivider = "border-r border-white/20";
+
 export function ToolsSection() {
   const [search, setSearch] = useState("");
-  const [category, setCategory] = useState<ToolCategory | "All">("All");
+  const [tagCategory, setTagCategory] = useState<ToolCategory | "All">("All");
+  const [selectedRoles, setSelectedRoles] = useState<Role[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<
+    CategoryFilterValue[]
+  >([]);
+  const [sort, setSort] = useState<SortOption>("newest");
 
   const filteredTools = useMemo(() => {
-    return AI_TOOLS.filter((tool: AITool) => {
+    let list = AI_TOOLS.filter((tool: AITool) => {
       const searchLower = search.toLowerCase();
       const matchesSearch =
         search === "" ||
         tool.name.toLowerCase().includes(searchLower) ||
         tool.description.toLowerCase().includes(searchLower) ||
         tool.tags.some((tag) => tag.toLowerCase().includes(searchLower));
-      const matchesCategory = category === "All" || tool.category === category;
-      return matchesSearch && matchesCategory;
+      const matchesTag =
+        tagCategory === "All" || tool.category === tagCategory;
+      const matchesRole =
+        selectedRoles.length === 0 ||
+        selectedRoles.includes(getToolRole(tool));
+      const matchesCategoryFilter =
+        selectedCategories.length === 0 ||
+        selectedCategories.some((c) => toolMatchesCategoryFilter(tool, c));
+      return (
+        matchesSearch && matchesTag && matchesRole && matchesCategoryFilter
+      );
     });
-  }, [search, category]);
+    list = [...list].sort((a, b) => {
+      if (sort === "newest") {
+        const dateA = a.addedAt ?? "";
+        const dateB = b.addedAt ?? "";
+        return dateB.localeCompare(dateA);
+      }
+      return (b.popularity ?? 0) - (a.popularity ?? 0);
+    });
+    return list;
+  }, [search, tagCategory, selectedRoles, selectedCategories, sort]);
 
   const handleReset = () => {
     setSearch("");
-    setCategory("All");
+    setTagCategory("All");
+    setSelectedRoles([]);
+    setSelectedCategories([]);
+    setSort("newest");
   };
+
+  const toggleRole = (role: Role) => {
+    setSelectedRoles((prev) =>
+      prev.includes(role) ? prev.filter((r) => r !== role) : [...prev, role]
+    );
+  };
+
+  const toggleCategory = (value: CategoryFilterValue) => {
+    if (value === "all") {
+      setSelectedCategories([]);
+      return;
+    }
+    setSelectedCategories((prev) =>
+      prev.includes(value)
+        ? prev.filter((c) => c !== value)
+        : [...prev, value]
+    );
+  };
+
+  const selectTriggerClass =
+    "border-0 bg-transparent shadow-none rounded-none h-auto py-3 text-white/90 hover:bg-white/5 focus:ring-0 focus-visible:ring-0 data-[placeholder]:text-white/60";
+
+  const roleLabel =
+    selectedRoles.length === 0
+      ? "Filter by role"
+      : selectedRoles.length === 1
+        ? selectedRoles[0]
+        : `${selectedRoles.length} roles`;
+
+  const categoryLabel =
+    selectedCategories.length === 0
+      ? "Filter by category"
+      : selectedCategories.length === 1
+        ? CATEGORY_FILTER_OPTIONS.find((o) => o.value === selectedCategories[0])
+            ?.label ?? "Filter by category"
+        : `${selectedCategories.length} categories`;
 
   return (
     <div className="min-h-screen">
@@ -60,7 +146,7 @@ export function ToolsSection() {
             </p>
           </div>
 
-          {/* Popular Tags */}
+          {/* Popular tags - single selection: clicking a tag selects only that tag */}
           <div className="mt-10 text-center">
             <p
               className="mb-3 text-sm font-medium uppercase tracking-wider"
@@ -71,18 +157,23 @@ export function ToolsSection() {
             <div className="flex justify-center">
               <CategoryFilter
                 categories={CATEGORIES}
-                activeCategory={category}
-                onCategoryChange={setCategory}
+                activeCategory={tagCategory}
+                onCategoryChange={(cat) => setTagCategory(cat)}
                 variant="dark"
               />
             </div>
           </div>
 
-          {/* Search and filter bar */}
-          <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="relative w-full sm:max-w-md">
+          {/* 4-part filter bar */}
+          <div
+            className={`mt-8 flex flex-col overflow-hidden rounded-lg sm:flex-row sm:items-stretch ${filterBarBorder}`}
+          >
+            {/* 1. Search */}
+            <div
+              className={`flex flex-1 items-center ${filterBarDivider} sm:border-r`}
+            >
               <Search
-                className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"
+                className="ml-3 h-4 w-4 shrink-0 sm:ml-4"
                 style={{ color: tealAccent }}
               />
               <Input
@@ -90,10 +181,135 @@ export function ToolsSection() {
                 placeholder="Search..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="border-white/20 bg-white/5 pl-9 text-white placeholder:text-white/50 focus-visible:ring-[var(--teal-bright)]"
+                className="min-w-0 flex-1 border-0 bg-transparent py-3 pl-2 pr-3 text-white placeholder:text-white/50 focus-visible:ring-0 sm:pl-3"
               />
             </div>
-            <div className="flex items-center gap-4">
+
+            {/* 2. Filter by role (multi-select) */}
+            <div
+              className={`flex min-w-0 flex-1 items-center sm:min-w-[140px] ${filterBarDivider}`}
+            >
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className={cn(
+                      "w-full justify-between gap-2 rounded-none border-0 bg-transparent py-3 pl-4 pr-3 text-left text-white/90 hover:bg-white/5",
+                      selectTriggerClass
+                    )}
+                  >
+                    <span className="flex items-center gap-2">
+                      <Filter
+                        className="h-4 w-4 shrink-0"
+                        style={{ color: tealAccent }}
+                      />
+                      <span className={cn(!roleLabel.startsWith("Filter") && "capitalize")}>
+                        {roleLabel}
+                      </span>
+                    </span>
+                    <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent
+                  align="start"
+                  className="max-h-[280px] overflow-y-auto border-white/20 bg-black p-2 text-white"
+                >
+                  <div className="flex flex-col gap-1">
+                    <label className="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-white/10">
+                      <Checkbox
+                        checked={selectedRoles.length === 0}
+                        onCheckedChange={() => setSelectedRoles([])}
+                        className="border-white/40 data-[state=checked]:bg-[var(--teal-bright)] data-[state=checked]:border-[var(--teal-bright)]"
+                      />
+                      <span>All roles</span>
+                    </label>
+                    {ROLES.map((r) => (
+                      <label
+                        key={r}
+                        className="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm capitalize hover:bg-white/10"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <Checkbox
+                          checked={selectedRoles.includes(r)}
+                          onCheckedChange={() => toggleRole(r)}
+                          className="border-white/40 data-[state=checked]:bg-[var(--teal-bright)] data-[state=checked]:border-[var(--teal-bright)]"
+                        />
+                        <span>{r}</span>
+                      </label>
+                    ))}
+                  </div>
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            {/* 3. Filter by category (multi-select) */}
+            <div
+              className={`flex min-w-0 flex-1 items-center sm:min-w-[160px] ${filterBarDivider}`}
+            >
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className={cn(
+                      "w-full justify-between gap-2 rounded-none border-0 bg-transparent py-3 pl-4 pr-3 text-left text-white/90 hover:bg-white/5",
+                      selectTriggerClass
+                    )}
+                  >
+                    <span className="flex items-center gap-2">
+                      <Filter
+                        className="h-4 w-4 shrink-0"
+                        style={{ color: tealAccent }}
+                      />
+                      <span>{categoryLabel}</span>
+                    </span>
+                    <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent
+                  align="start"
+                  className="max-h-[280px] overflow-y-auto border-white/20 bg-black p-2 text-white"
+                >
+                  <div className="flex flex-col gap-1">
+                    {CATEGORY_FILTER_OPTIONS.map((opt) => (
+                      <label
+                        key={opt.value}
+                        className="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-white/10"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <Checkbox
+                          checked={
+                            opt.value === "all"
+                              ? selectedCategories.length === 0
+                              : selectedCategories.includes(opt.value)
+                          }
+                          onCheckedChange={() => toggleCategory(opt.value)}
+                          className="border-white/40 data-[state=checked]:bg-[var(--teal-bright)] data-[state=checked]:border-[var(--teal-bright)]"
+                        />
+                        <span>{opt.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            {/* 4. Sort + count + Reset */}
+            <div className="flex flex-1 flex-wrap items-center justify-end gap-2 py-2 pl-4 pr-3 sm:flex-nowrap sm:gap-3 sm:py-0">
+              <Select value={sort} onValueChange={(v) => setSort(v as SortOption)}>
+                <SelectTrigger
+                  className={`w-full gap-2 sm:w-auto ${selectTriggerClass} pl-0`}
+                >
+                  <SelectValue placeholder="Sort" />
+                </SelectTrigger>
+                <SelectContent className="border-white/20 bg-black text-white">
+                  <SelectItem value="newest" className="focus:bg-white/10 focus:text-white">
+                    Newest to oldest
+                  </SelectItem>
+                  <SelectItem value="popularity" className="focus:bg-white/10 focus:text-white">
+                    Popularity
+                  </SelectItem>
+                </SelectContent>
+              </Select>
               <span className="text-sm text-white/70">
                 {filteredTools.length} tools
               </span>
