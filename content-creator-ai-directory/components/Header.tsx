@@ -5,7 +5,7 @@ import MandalaLogo from "@/components/MandalaLogo";
 
 export function Header() {
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-black">
+    <header className="sticky top-0 z-50 w-full border-b border-[var(--teal-bright)] bg-black">
       <div className="container flex h-20 items-center justify-between px-4 sm:px-6 lg:px-8">
         <Link
           href="/"

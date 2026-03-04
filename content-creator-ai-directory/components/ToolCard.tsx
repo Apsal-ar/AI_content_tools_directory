@@ -36,55 +36,45 @@ export function ToolCard({ tool, variant = "default" }: ToolCardProps) {
         alt={tool.name}
         className="aspect-video w-full shrink-0"
       />
-      <CardHeader className="flex flex-row items-start gap-4">
-        <div
-          className={cn(
-            "flex h-12 w-12 shrink-0 items-center justify-center rounded-lg",
-            isDark
-              ? "bg-[var(--teal-dark)]/50 text-[var(--teal-bright)]"
-              : "bg-muted text-muted-foreground"
-          )}
-        >
-          <span className="text-xl font-semibold">{tool.name.charAt(0)}</span>
-        </div>
-        <div className="min-w-0 flex-1 space-y-1.5">
-          <CardTitle className="line-clamp-1">
+      <CardHeader className="space-y-2">
+        <div className="flex items-center justify-between gap-2">
+          <CardTitle className="line-clamp-1 min-w-0 flex-1 text-xl">
             <Link href={`/tools/${tool.slug}`} className="hover:underline">
               {tool.name}
             </Link>
           </CardTitle>
-          <div className="flex flex-wrap gap-1.5">
+          <Badge
+            variant="outline"
+            className={cn(
+              "shrink-0 rounded-md text-xs",
+              isDark && "border-white/30 text-white/80"
+            )}
+          >
+            {tool.pricing}
+          </Badge>
+        </div>
+        <div className="flex flex-wrap gap-1.5">
+          <Badge
+            variant={isDark ? "outline" : "secondary"}
+            className={cn(
+              "rounded-md text-xs",
+              isDark && "border-[var(--teal-bright)]/50 text-[var(--teal-bright)]"
+            )}
+          >
+            {tool.category}
+          </Badge>
+          {tool.tags.map((tag) => (
             <Badge
-              variant={isDark ? "outline" : "secondary"}
-              className={cn(
-                "text-xs",
-                isDark && "border-[var(--teal-bright)]/50 text-[var(--teal-bright)]"
-              )}
-            >
-              {tool.category}
-            </Badge>
-            <Badge
+              key={tag}
               variant="outline"
               className={cn(
-                "text-xs",
-                isDark && "border-white/30 text-white/80"
+                "rounded-md text-xs font-normal",
+                isDark && "border-[var(--teal-medium)]/50 text-[var(--teal-light)]"
               )}
             >
-              {tool.pricing}
+              {tag}
             </Badge>
-            {tool.tags.map((tag) => (
-              <Badge
-                key={tag}
-                variant="outline"
-                className={cn(
-                  "text-xs font-normal",
-                  isDark && "border-[var(--teal-medium)]/50 text-[var(--teal-light)]"
-                )}
-              >
-                {tag}
-              </Badge>
-            ))}
-          </div>
+          ))}
         </div>
       </CardHeader>
       <CardContent className="flex-1">

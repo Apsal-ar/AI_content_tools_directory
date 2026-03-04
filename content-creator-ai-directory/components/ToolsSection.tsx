@@ -111,9 +111,9 @@ export function ToolsSection() {
       </section>
 
       {/* Tools Grid - black background */}
-      <section className="container mx-auto bg-black px-4 py-12 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-6xl">
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <section className="container mx-auto max-w-[1280px] bg-black px-4 py-12 sm:px-6 lg:px-8">
+        <div className="w-full">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {filteredTools.map((tool) => (
               <ToolCard key={tool.id} tool={tool} variant="dark" />
             ))}
