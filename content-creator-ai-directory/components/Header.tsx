@@ -58,14 +58,33 @@ function UserInfo() {
 
 export function Header() {
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-[var(--teal-bright)] bg-black">
+    <header
+      className="sticky top-0 z-50 w-full"
+      style={{
+        background: "rgba(5, 5, 15, 0.7)",
+        backdropFilter: "blur(12px)",
+        WebkitBackdropFilter: "blur(12px)",
+        borderBottom: "1px solid rgba(0, 245, 212, 0.6)",
+        boxShadow: "0 1px 20px rgba(0, 255, 255, 0.15)",
+      }}
+    >
       <div className="container flex h-20 items-center justify-between px-4 sm:px-6 lg:px-8">
         <Link
           href="/"
-          className="flex items-center gap-3 text-lg font-semibold tracking-tight text-white hover:opacity-90"
+          className="flex items-center gap-3 text-lg font-semibold tracking-tight hover:opacity-90"
         >
-          <MandalaLogo size={44} />
-          <span className="uppercase tracking-wider">AI Tools Directory</span>
+          <MandalaLogo size={53} />
+          <span
+            className="uppercase tracking-wider"
+            style={{
+              background: "linear-gradient(to right, #ffffff, var(--teal-bright))",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+            }}
+          >
+            AI Tools Directory
+          </span>
         </Link>
         <div className="flex items-center gap-3">
           <Show when="signed-out">

@@ -39,9 +39,6 @@ import { cn } from "@/lib/utils";
 
 const tealAccent = "var(--teal-bright)";
 
-const filterBarBorder = "border border-white/20";
-const filterBarDivider = "border-r border-white/20";
-
 export function ToolsSection() {
   const [search, setSearch] = useState("");
   const [tagCategory, setTagCategory] = useState<ToolCategory | "All">("All");
@@ -112,8 +109,10 @@ export function ToolsSection() {
     );
   };
 
-  const selectTriggerClass =
-    "border-0 bg-transparent shadow-none rounded-none h-auto py-3 text-white/90 hover:bg-white/5 focus:ring-0 focus-visible:ring-0 data-[placeholder]:text-white/60";
+    const pillBase =
+    "h-11 rounded-full border border-white/20 bg-white/5 text-white/90 transition-all duration-200 hover:border-white/40";
+  const pillFocus =
+    "focus:border-[var(--teal-bright)] focus:shadow-[0_0_12px_rgba(0,255,255,0.3)]";
 
   const roleLabel =
     selectedRoles.length === 0
@@ -170,171 +169,167 @@ export function ToolsSection() {
           </div>
         </div>
 
-        {/* 4-part filter bar — full width matching the tools grid */}
+        {/* Filter bar — individual pills, full width matching tools grid */}
         <div className="mx-auto mt-8 max-w-[1280px]">
-          <div
-            className={`flex flex-col overflow-hidden rounded-lg sm:flex-row sm:items-stretch ${filterBarBorder}`}
-          >
-            {/* 1. Search */}
+          <div className="flex flex-wrap items-center gap-3">
+
+            {/* 1. Search pill */}
             <div
-              className={`flex flex-1 items-center ${filterBarDivider} sm:border-r`}
+              className={cn(
+                "flex flex-1 min-w-[180px] items-center gap-2 px-4",
+                pillBase,
+                "focus-within:border-[var(--teal-bright)] focus-within:shadow-[0_0_12px_rgba(0,255,255,0.3)]"
+              )}
             >
-              <Search
-                className="ml-3 h-4 w-4 shrink-0 sm:ml-4"
-                style={{ color: tealAccent }}
-              />
+              <Search className="h-4 w-4 shrink-0" style={{ color: tealAccent }} />
               <Input
                 type="search"
                 placeholder="Search..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="min-w-0 flex-1 border-0 bg-transparent py-3 pl-2 pr-3 text-white placeholder:text-white/50 focus-visible:ring-0 sm:pl-3"
+                className="min-w-0 flex-1 border-0 bg-transparent p-0 text-white placeholder:text-white/50 focus-visible:ring-0 focus-visible:ring-offset-0 h-full"
               />
             </div>
 
-            {/* 2. Filter by role (multi-select) */}
-            <div
-              className={`flex min-w-0 flex-1 items-center sm:min-w-[140px] ${filterBarDivider}`}
-            >
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className={cn(
-                      "w-full justify-between gap-2 rounded-none border-0 bg-transparent py-3 pl-4 pr-3 text-left text-white/90 hover:bg-white/5",
-                      selectTriggerClass
-                    )}
-                  >
-                    <span className="flex items-center gap-2">
-                      <Filter
-                        className="h-4 w-4 shrink-0"
-                        style={{ color: tealAccent }}
-                      />
-                      <span className={cn(!roleLabel.startsWith("Filter") && "capitalize")}>
-                        {roleLabel}
-                      </span>
-                    </span>
-                    <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent
-                  align="start"
-                  className="max-h-[280px] overflow-y-auto border-white/20 bg-black p-2 text-white"
+            {/* 2. Filter by role pill (multi-select) */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className={cn(
+                    "min-w-[155px] justify-between gap-2 px-4",
+                    pillBase,
+                    "hover:bg-white/5 focus-visible:border-[var(--teal-bright)] focus-visible:shadow-[0_0_12px_rgba(0,255,255,0.3)] focus-visible:ring-0"
+                  )}
                 >
-                  <div className="flex flex-col gap-1">
-                    <label className="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-white/10">
+                  <span className="flex items-center gap-2">
+                    <Filter className="h-4 w-4 shrink-0" style={{ color: tealAccent }} />
+                    <span className={cn("text-sm", !roleLabel.startsWith("Filter") && "capitalize")}>
+                      {roleLabel}
+                    </span>
+                  </span>
+                  <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent
+                align="start"
+                className="max-h-[280px] overflow-y-auto border-white/20 bg-black p-2 text-white"
+              >
+                <div className="flex flex-col gap-1">
+                  <label className="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-white/10">
+                    <Checkbox
+                      checked={selectedRoles.length === 0}
+                      onCheckedChange={() => setSelectedRoles([])}
+                      className="border-white/40 data-[state=checked]:bg-[var(--teal-bright)] data-[state=checked]:border-[var(--teal-bright)]"
+                    />
+                    <span>All roles</span>
+                  </label>
+                  {ROLES.map((r) => (
+                    <label
+                      key={r}
+                      className="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm capitalize hover:bg-white/10"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <Checkbox
-                        checked={selectedRoles.length === 0}
-                        onCheckedChange={() => setSelectedRoles([])}
+                        checked={selectedRoles.includes(r)}
+                        onCheckedChange={() => toggleRole(r)}
                         className="border-white/40 data-[state=checked]:bg-[var(--teal-bright)] data-[state=checked]:border-[var(--teal-bright)]"
                       />
-                      <span>All roles</span>
+                      <span>{r}</span>
                     </label>
-                    {ROLES.map((r) => (
-                      <label
-                        key={r}
-                        className="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm capitalize hover:bg-white/10"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <Checkbox
-                          checked={selectedRoles.includes(r)}
-                          onCheckedChange={() => toggleRole(r)}
-                          className="border-white/40 data-[state=checked]:bg-[var(--teal-bright)] data-[state=checked]:border-[var(--teal-bright)]"
-                        />
-                        <span>{r}</span>
-                      </label>
-                    ))}
-                  </div>
-                </PopoverContent>
-              </Popover>
-            </div>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
 
-            {/* 3. Filter by category (multi-select) */}
-            <div
-              className={`flex min-w-0 flex-1 items-center sm:min-w-[160px] ${filterBarDivider}`}
-            >
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className={cn(
-                      "w-full justify-between gap-2 rounded-none border-0 bg-transparent py-3 pl-4 pr-3 text-left text-white/90 hover:bg-white/5",
-                      selectTriggerClass
-                    )}
-                  >
-                    <span className="flex items-center gap-2">
-                      <Filter
-                        className="h-4 w-4 shrink-0"
-                        style={{ color: tealAccent }}
-                      />
-                      <span>{categoryLabel}</span>
-                    </span>
-                    <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent
-                  align="start"
-                  className="max-h-[280px] overflow-y-auto border-white/20 bg-black p-2 text-white"
+            {/* 3. Filter by category pill (multi-select) */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className={cn(
+                    "min-w-[175px] justify-between gap-2 px-4",
+                    pillBase,
+                    "hover:bg-white/5 focus-visible:border-[var(--teal-bright)] focus-visible:shadow-[0_0_12px_rgba(0,255,255,0.3)] focus-visible:ring-0"
+                  )}
                 >
-                  <div className="flex flex-col gap-1">
-                    {CATEGORY_FILTER_OPTIONS.map((opt) => (
-                      <label
-                        key={opt.value}
-                        className="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-white/10"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <Checkbox
-                          checked={
-                            opt.value === "all"
-                              ? selectedCategories.length === 0
-                              : selectedCategories.includes(opt.value)
-                          }
-                          onCheckedChange={() => toggleCategory(opt.value)}
-                          className="border-white/40 data-[state=checked]:bg-[var(--teal-bright)] data-[state=checked]:border-[var(--teal-bright)]"
-                        />
-                        <span>{opt.label}</span>
-                      </label>
-                    ))}
-                  </div>
-                </PopoverContent>
-              </Popover>
-            </div>
+                  <span className="flex items-center gap-2">
+                    <Filter className="h-4 w-4 shrink-0" style={{ color: tealAccent }} />
+                    <span className="text-sm">{categoryLabel}</span>
+                  </span>
+                  <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent
+                align="start"
+                className="max-h-[280px] overflow-y-auto border-white/20 bg-black p-2 text-white"
+              >
+                <div className="flex flex-col gap-1">
+                  {CATEGORY_FILTER_OPTIONS.map((opt) => (
+                    <label
+                      key={opt.value}
+                      className="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-white/10"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <Checkbox
+                        checked={
+                          opt.value === "all"
+                            ? selectedCategories.length === 0
+                            : selectedCategories.includes(opt.value)
+                        }
+                        onCheckedChange={() => toggleCategory(opt.value)}
+                        className="border-white/40 data-[state=checked]:bg-[var(--teal-bright)] data-[state=checked]:border-[var(--teal-bright)]"
+                      />
+                      <span>{opt.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
 
-            {/* 4. Sort + count + Reset - Sort Select rendered only after mount to avoid hydration mismatch from browser extensions (e.g. data-sharkid) */}
-            <div className="flex flex-1 flex-wrap items-center justify-end gap-2 py-2 pl-4 pr-3 sm:flex-nowrap sm:gap-3 sm:py-0">
-              {sortSelectMounted ? (
-                <Select value={sort} onValueChange={(v) => setSort(v as SortOption)}>
-                  <SelectTrigger
-                    className={`w-full gap-2 sm:w-auto ${selectTriggerClass} pl-0`}
-                  >
-                    <SelectValue placeholder="Sort" />
-                  </SelectTrigger>
-                  <SelectContent className="border-white/20 bg-black text-white">
-                    <SelectItem value="newest" className="focus:bg-white/10 focus:text-white">
-                      Newest to oldest
-                    </SelectItem>
-                    <SelectItem value="popularity" className="focus:bg-white/10 focus:text-white">
-                      Popularity
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              ) : (
-                <span className="min-h-9 py-2 text-white/90 sm:py-0">
-                  {sort === "newest" ? "Newest to oldest" : "Popularity"}
-                </span>
-              )}
-              <span className="text-sm text-white/70">
+            {/* 4. Sort pill — rendered only after mount to avoid hydration mismatch */}
+            {sortSelectMounted ? (
+              <Select value={sort} onValueChange={(v) => setSort(v as SortOption)}>
+                <SelectTrigger
+                  className={cn(
+                    "w-auto min-w-[165px] gap-2 px-4 shadow-none",
+                    pillBase,
+                    pillFocus,
+                    "focus:ring-0 focus-visible:ring-0 data-[placeholder]:text-white/60"
+                  )}
+                >
+                  <SelectValue placeholder="Sort" />
+                </SelectTrigger>
+                <SelectContent className="border-white/20 bg-black text-white">
+                  <SelectItem value="newest" className="focus:bg-white/10 focus:text-white">
+                    Newest to oldest
+                  </SelectItem>
+                  <SelectItem value="popularity" className="focus:bg-white/10 focus:text-white">
+                    Popularity
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            ) : (
+              <div className={cn("flex items-center px-4 text-sm", pillBase)}>
+                {sort === "newest" ? "Newest to oldest" : "Popularity"}
+              </div>
+            )}
+
+            {/* 5. Count + Reset */}
+            <div className="flex items-center gap-3 ml-auto">
+              <span className="text-sm text-white/50">
                 {filteredTools.length} tools
               </span>
               <Button
-                variant="link"
+                variant="ghost"
                 size="sm"
                 onClick={handleReset}
-                className="h-auto p-0 text-[var(--teal-bright)] hover:text-[var(--teal-medium)]"
+                className="h-8 rounded-full border border-transparent px-3 text-[var(--teal-bright)] hover:border-[var(--teal-bright)]/40 hover:bg-[var(--teal-bright)]/10 hover:text-[var(--teal-bright)] hover:shadow-[0_0_8px_rgba(0,255,255,0.2)] transition-all duration-200"
               >
                 Reset
               </Button>
             </div>
+
           </div>
         </div>
       </section>

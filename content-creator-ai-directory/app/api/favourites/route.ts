@@ -48,17 +48,25 @@ export async function POST(request: Request) {
 
   if (existing) {
     // Remove
-    await supabase
+    const { error: deleteError } = await supabase
       .from("user_favourites")
       .delete()
       .eq("user_id", userId)
       .eq("tool_slug", slug);
+    if (deleteError) {
+      console.error("Supabase delete favourite error:", deleteError);
+      return NextResponse.json({ error: "Database error" }, { status: 500 });
+    }
     return NextResponse.json({ action: "removed", slug });
   } else {
     // Add
-    await supabase
+    const { error: insertError } = await supabase
       .from("user_favourites")
       .insert({ user_id: userId, tool_slug: slug });
+    if (insertError) {
+      console.error("Supabase insert favourite error:", insertError);
+      return NextResponse.json({ error: "Database error" }, { status: 500 });
+    }
     return NextResponse.json({ action: "added", slug });
   }
 }

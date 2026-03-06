@@ -44,13 +44,14 @@ export function useFavourites() {
       });
 
       try {
-        await fetch("/api/favourites", {
+        const res = await fetch("/api/favourites", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ slug }),
         });
+        if (!res.ok) throw new Error("API error");
       } catch {
-        // Revert on error
+        // Revert on network error or non-2xx response
         setSlugs((prev) => {
           const next = new Set(prev);
           if (wasFav) next.add(slug);
