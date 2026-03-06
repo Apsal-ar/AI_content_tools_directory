@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Raleway, Geist_Mono } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
 import "./globals.css";
 
 const raleway = Raleway({
@@ -29,10 +30,11 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="en">
         <body
-          className={`${raleway.variable} ${geistMono.variable} antialiased font-sans`}
+          className={`${raleway.variable} ${geistMono.variable} flex min-h-screen flex-col antialiased font-sans`}
         >
           <Header />
-          {children}
+          <main className="flex-1">{children}</main>
+          <Footer />
         </body>
       </html>
     </ClerkProvider>

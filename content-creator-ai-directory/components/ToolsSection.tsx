@@ -48,8 +48,10 @@ export function ToolsSection() {
     CategoryFilterValue[]
   >([]);
   const [sort, setSort] = useState<SortOption>("newest");
-  const [sortSelectMounted, setSortSelectMounted] = useState(false);
-  useEffect(() => setSortSelectMounted(true), []);
+  // Delay Radix interactive components until client mount to avoid
+  // aria-controls ID mismatch between SSR and client hydration
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   const { slugs: favouriteSlugs, toggle: toggleFavourite, isSignedIn } = useFavourites();
 
@@ -74,12 +76,25 @@ export function ToolsSection() {
       );
     });
     list = [...list].sort((a, b) => {
-      if (sort === "newest") {
-        const dateA = a.addedAt ?? "";
-        const dateB = b.addedAt ?? "";
-        return dateB.localeCompare(dateA);
+      switch (sort) {
+        case "newest":
+          return (b.addedAt ?? "").localeCompare(a.addedAt ?? "");
+        case "oldest":
+          return (a.addedAt ?? "").localeCompare(b.addedAt ?? "");
+        case "updated":
+          // Fall back to addedAt if updatedAt is absent
+          return (b.updatedAt ?? b.addedAt ?? "").localeCompare(
+            a.updatedAt ?? a.addedAt ?? ""
+          );
+        case "az":
+          return a.name.localeCompare(b.name);
+        case "za":
+          return b.name.localeCompare(a.name);
+        case "popularity":
+          return (b.popularity ?? 0) - (a.popularity ?? 0);
+        default:
+          return 0;
       }
-      return (b.popularity ?? 0) - (a.popularity ?? 0);
     });
     return list;
   }, [search, tagCategory, selectedRoles, selectedCategories, sort]);
@@ -219,104 +234,124 @@ export function ToolsSection() {
               />
             </div>
 
-            {/* 2. Filter by role pill (multi-select) */}
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className={cn(
-                    "min-w-[155px] justify-between gap-2 px-4",
-                    pillBase,
-                    "hover:bg-white/5 focus-visible:border-[var(--teal-bright)] focus-visible:shadow-[0_0_12px_rgba(0,255,255,0.3)] focus-visible:ring-0"
-                  )}
-                >
-                  <span className="flex items-center gap-2">
-                    <Filter className="h-4 w-4 shrink-0" style={{ color: tealAccent }} />
-                    <span className={cn("text-sm", !roleLabel.startsWith("Filter") && "capitalize")}>
-                      {roleLabel}
+            {/* 2. Filter by role pill (multi-select) — client-only to avoid Radix aria-controls mismatch */}
+            {mounted ? (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className={cn(
+                      "min-w-[155px] justify-between gap-2 px-4",
+                      pillBase,
+                      "hover:bg-white/5 focus-visible:border-[var(--teal-bright)] focus-visible:shadow-[0_0_12px_rgba(0,255,255,0.3)] focus-visible:ring-0"
+                    )}
+                  >
+                    <span className="flex items-center gap-2">
+                      <Filter className="h-4 w-4 shrink-0" style={{ color: tealAccent }} />
+                      <span className={cn("text-sm", !roleLabel.startsWith("Filter") && "capitalize")}>
+                        {roleLabel}
+                      </span>
                     </span>
-                  </span>
-                  <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent
-                align="start"
-                className="max-h-[280px] overflow-y-auto border-white/20 bg-black p-2 text-white"
-              >
-                <div className="flex flex-col gap-1">
-                  <label className="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-white/10">
-                    <Checkbox
-                      checked={selectedRoles.length === 0}
-                      onCheckedChange={() => setSelectedRoles([])}
-                      className="border-white/40 data-[state=checked]:bg-[var(--teal-bright)] data-[state=checked]:border-[var(--teal-bright)]"
-                    />
-                    <span>All roles</span>
-                  </label>
-                  {ROLES.map((r) => (
-                    <label
-                      key={r}
-                      className="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm capitalize hover:bg-white/10"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <Checkbox
-                        checked={selectedRoles.includes(r)}
-                        onCheckedChange={() => toggleRole(r)}
-                        className="border-white/40 data-[state=checked]:bg-[var(--teal-bright)] data-[state=checked]:border-[var(--teal-bright)]"
-                      />
-                      <span>{r}</span>
-                    </label>
-                  ))}
-                </div>
-              </PopoverContent>
-            </Popover>
-
-            {/* 3. Filter by category pill (multi-select) */}
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className={cn(
-                    "min-w-[175px] justify-between gap-2 px-4",
-                    pillBase,
-                    "hover:bg-white/5 focus-visible:border-[var(--teal-bright)] focus-visible:shadow-[0_0_12px_rgba(0,255,255,0.3)] focus-visible:ring-0"
-                  )}
+                    <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent
+                  align="start"
+                  className="max-h-[280px] overflow-y-auto border-white/20 bg-black p-2 text-white"
                 >
-                  <span className="flex items-center gap-2">
-                    <Filter className="h-4 w-4 shrink-0" style={{ color: tealAccent }} />
-                    <span className="text-sm">{categoryLabel}</span>
-                  </span>
-                  <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent
-                align="start"
-                className="max-h-[280px] overflow-y-auto border-white/20 bg-black p-2 text-white"
-              >
-                <div className="flex flex-col gap-1">
-                  {CATEGORY_FILTER_OPTIONS.map((opt) => (
-                    <label
-                      key={opt.value}
-                      className="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-white/10"
-                      onClick={(e) => e.stopPropagation()}
-                    >
+                  <div className="flex flex-col gap-1">
+                    <label className="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-white/10">
                       <Checkbox
-                        checked={
-                          opt.value === "all"
-                            ? selectedCategories.length === 0
-                            : selectedCategories.includes(opt.value)
-                        }
-                        onCheckedChange={() => toggleCategory(opt.value)}
+                        checked={selectedRoles.length === 0}
+                        onCheckedChange={() => setSelectedRoles([])}
                         className="border-white/40 data-[state=checked]:bg-[var(--teal-bright)] data-[state=checked]:border-[var(--teal-bright)]"
                       />
-                      <span>{opt.label}</span>
+                      <span>All roles</span>
                     </label>
-                  ))}
-                </div>
-              </PopoverContent>
-            </Popover>
+                    {ROLES.map((r) => (
+                      <label
+                        key={r}
+                        className="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm capitalize hover:bg-white/10"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <Checkbox
+                          checked={selectedRoles.includes(r)}
+                          onCheckedChange={() => toggleRole(r)}
+                          className="border-white/40 data-[state=checked]:bg-[var(--teal-bright)] data-[state=checked]:border-[var(--teal-bright)]"
+                        />
+                        <span>{r}</span>
+                      </label>
+                    ))}
+                  </div>
+                </PopoverContent>
+              </Popover>
+            ) : (
+              <div className={cn("flex min-w-[155px] items-center justify-between gap-2 px-4 text-sm", pillBase)}>
+                <span className="flex items-center gap-2">
+                  <Filter className="h-4 w-4 shrink-0" style={{ color: tealAccent }} />
+                  <span>Filter by role</span>
+                </span>
+                <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
+              </div>
+            )}
 
-            {/* 4. Sort pill — rendered only after mount to avoid hydration mismatch */}
-            {sortSelectMounted ? (
+            {/* 3. Filter by category pill (multi-select) — client-only */}
+            {mounted ? (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className={cn(
+                      "min-w-[175px] justify-between gap-2 px-4",
+                      pillBase,
+                      "hover:bg-white/5 focus-visible:border-[var(--teal-bright)] focus-visible:shadow-[0_0_12px_rgba(0,255,255,0.3)] focus-visible:ring-0"
+                    )}
+                  >
+                    <span className="flex items-center gap-2">
+                      <Filter className="h-4 w-4 shrink-0" style={{ color: tealAccent }} />
+                      <span className="text-sm">{categoryLabel}</span>
+                    </span>
+                    <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent
+                  align="start"
+                  className="max-h-[280px] overflow-y-auto border-white/20 bg-black p-2 text-white"
+                >
+                  <div className="flex flex-col gap-1">
+                    {CATEGORY_FILTER_OPTIONS.map((opt) => (
+                      <label
+                        key={opt.value}
+                        className="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-white/10"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <Checkbox
+                          checked={
+                            opt.value === "all"
+                              ? selectedCategories.length === 0
+                              : selectedCategories.includes(opt.value)
+                          }
+                          onCheckedChange={() => toggleCategory(opt.value)}
+                          className="border-white/40 data-[state=checked]:bg-[var(--teal-bright)] data-[state=checked]:border-[var(--teal-bright)]"
+                        />
+                        <span>{opt.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                </PopoverContent>
+              </Popover>
+            ) : (
+              <div className={cn("flex min-w-[175px] items-center justify-between gap-2 px-4 text-sm", pillBase)}>
+                <span className="flex items-center gap-2">
+                  <Filter className="h-4 w-4 shrink-0" style={{ color: tealAccent }} />
+                  <span>Filter by category</span>
+                </span>
+                <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
+              </div>
+            )}
+
+            {/* 4. Sort pill — client-only */}
+            {mounted ? (
               <Select value={sort} onValueChange={(v) => setSort(v as SortOption)}>
                 <SelectTrigger
                   className={cn(
@@ -329,17 +364,17 @@ export function ToolsSection() {
                   <SelectValue placeholder="Sort" />
                 </SelectTrigger>
                 <SelectContent className="border-white/20 bg-black text-white">
-                  <SelectItem value="newest" className="focus:bg-white/10 focus:text-white">
-                    Newest to oldest
-                  </SelectItem>
-                  <SelectItem value="popularity" className="focus:bg-white/10 focus:text-white">
-                    Popularity
-                  </SelectItem>
+                  <SelectItem value="newest"     className="focus:bg-white/10 focus:text-white">Newest to oldest</SelectItem>
+                  <SelectItem value="oldest"     className="focus:bg-white/10 focus:text-white">Oldest to newest</SelectItem>
+                  <SelectItem value="updated"    className="focus:bg-white/10 focus:text-white">Recently updated</SelectItem>
+                  <SelectItem value="az"         className="focus:bg-white/10 focus:text-white">A → Z</SelectItem>
+                  <SelectItem value="za"         className="focus:bg-white/10 focus:text-white">Z → A</SelectItem>
+                  <SelectItem value="popularity" className="focus:bg-white/10 focus:text-white">Popularity</SelectItem>
                 </SelectContent>
               </Select>
             ) : (
               <div className={cn("flex items-center px-4 text-sm", pillBase)}>
-                {sort === "newest" ? "Newest to oldest" : "Popularity"}
+                {{ newest: "Newest to oldest", oldest: "Oldest to newest", updated: "Recently updated", az: "A → Z", za: "Z → A", popularity: "Popularity" }[sort] ?? "Newest to oldest"}
               </div>
             )}
 

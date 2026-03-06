@@ -29,7 +29,7 @@ export const CATEGORY_FILTER_OPTIONS = [
 export type CategoryFilterValue =
   (typeof CATEGORY_FILTER_OPTIONS)[number]["value"];
 
-export type SortOption = "newest" | "popularity";
+export type SortOption = "newest" | "oldest" | "updated" | "az" | "za" | "popularity";
 
 export interface AITool {
   id: string;
@@ -40,8 +40,10 @@ export interface AITool {
   pricing: PricingModel;
   websiteUrl: string;
   slug: string;
-  /** For sort by newest (default) */
+  /** For sort by newest / oldest */
   addedAt?: string;
+  /** For sort by recently updated */
+  updatedAt?: string;
   /** For sort by popularity */
   popularity?: number;
 }
