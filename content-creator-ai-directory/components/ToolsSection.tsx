@@ -21,6 +21,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { CategoryFilter } from "@/components/CategoryFilter";
 import MandalaLogo from "@/components/MandalaLogo";
 import { ToolCard } from "@/components/ToolCard";
+import { useFavourites } from "@/hooks/useFavourites";
 import {
   AI_TOOLS,
   CATEGORIES,
@@ -51,6 +52,8 @@ export function ToolsSection() {
   const [sort, setSort] = useState<SortOption>("newest");
   const [sortSelectMounted, setSortSelectMounted] = useState(false);
   useEffect(() => setSortSelectMounted(true), []);
+
+  const { slugs: favouriteSlugs, toggle: toggleFavourite, isSignedIn } = useFavourites();
 
   const filteredTools = useMemo(() => {
     let list = AI_TOOLS.filter((tool: AITool) => {
@@ -165,10 +168,12 @@ export function ToolsSection() {
               />
             </div>
           </div>
+        </div>
 
-          {/* 4-part filter bar */}
+        {/* 4-part filter bar — full width matching the tools grid */}
+        <div className="mx-auto mt-8 max-w-[1280px]">
           <div
-            className={`mt-8 flex flex-col overflow-hidden rounded-lg sm:flex-row sm:items-stretch ${filterBarBorder}`}
+            className={`flex flex-col overflow-hidden rounded-lg sm:flex-row sm:items-stretch ${filterBarBorder}`}
           >
             {/* 1. Search */}
             <div
@@ -339,7 +344,14 @@ export function ToolsSection() {
         <div className="w-full">
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {filteredTools.map((tool) => (
-              <ToolCard key={tool.id} tool={tool} variant="dark" />
+              <ToolCard
+                key={tool.id}
+                tool={tool}
+                variant="dark"
+                isFavourited={favouriteSlugs.has(tool.slug)}
+                isSignedIn={isSignedIn}
+                onToggleFavourite={toggleFavourite}
+              />
             ))}
           </div>
           {filteredTools.length === 0 && (

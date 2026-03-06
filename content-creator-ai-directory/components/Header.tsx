@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { SignInButton, UserButton, Show } from "@clerk/nextjs";
+import { SignInButton, UserButton, Show, useUser } from "@clerk/nextjs";
 import { Bookmark } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -10,32 +10,51 @@ import MandalaLogo from "@/components/MandalaLogo";
 const clerkAppearance = {
   variables: {
     colorPrimary: "#00f5d4",
-    colorBackground: "#000000",
+    colorBackground: "#0a0a0a",
     colorText: "#ffffff",
-    colorTextSecondary: "rgba(255,255,255,0.7)",
+    colorTextSecondary: "rgba(255,255,255,0.6)",
     colorInputBackground: "rgba(255,255,255,0.05)",
     colorInputText: "#ffffff",
+    colorNeutral: "#ffffff",
     borderRadius: "0.5rem",
+    fontSize: "0.875rem",
+    spacingUnit: "0.85rem",
   },
   elements: {
-    formButtonPrimary:
-      "bg-[var(--teal-bright)] text-black shadow-[var(--neon-glow)] hover:bg-[var(--teal-light)]",
-    card: "bg-black border border-[var(--teal-bright)]/30",
-    headerTitle: "text-white",
-    headerSubtitle: "text-white/70",
-    socialButtonsBlockButton: "border-[var(--teal-bright)]/50 text-[var(--teal-bright)]",
-    formFieldLabel: "text-white/90",
-    formFieldInput:
-      "bg-white/5 border-white/20 text-white placeholder:text-white/50",
-    footerActionLink: "text-[var(--teal-bright)] hover:text-[var(--teal-light)]",
-    identityPreviewEditButton: "text-[var(--teal-bright)]",
-    menuButton: "text-white hover:bg-white/10",
-    menuList: "bg-black border border-[var(--teal-bright)]/30",
-    userButtonBox: "text-white",
-    userButtonTrigger: "focus:shadow-[var(--neon-glow)]",
-    avatarBox: "border-2 border-[var(--teal-bright)]/50",
+    userButtonPopoverCard:
+      "!bg-[#0a0a0a] !border !border-[rgba(0,245,212,0.25)] !shadow-[0_0_30px_rgba(0,245,212,0.1)] !text-white !min-w-[220px] !max-w-[260px]",
+    userButtonPopoverMain: "!p-3",
+    userButtonPopoverFooter: "hidden",
+    userButtonPopoverActionButton:
+      "!text-white hover:!bg-white/10 !rounded-md !text-sm !py-1.5 !px-2 !w-full",
+    userButtonPopoverActionButtonText: "!text-white !text-sm",
+    userButtonPopoverActionButtonIcon: "!text-[var(--teal-bright)]",
+    userPreview: "!gap-2.5 !p-2",
+    userPreviewAvatarBox: "!size-8",
+    userPreviewTextContainer: "!gap-0",
+    userPreviewMainIdentifier: "!text-white !text-sm !font-medium",
+    userPreviewSecondaryIdentifier: "!text-white/50 !text-xs",
+    userButtonPopoverActionButtonIconBox: "!text-[var(--teal-bright)]",
+    avatarBox:
+      "!border-2 !border-[rgba(0,245,212,0.5)] hover:!border-[rgba(0,245,212,0.8)] !transition-colors",
+    userButtonTrigger:
+      "!rounded-full focus:!shadow-none focus-visible:!outline-none",
   },
 };
+
+function UserInfo() {
+  const { user } = useUser();
+  if (!user) return null;
+  const name =
+    user.fullName ??
+    user.firstName ??
+    user.username ??
+    user.primaryEmailAddress?.emailAddress?.split("@")[0] ??
+    "";
+  return (
+    <span className="hidden text-sm font-medium text-white sm:block">{name}</span>
+  );
+}
 
 export function Header() {
   return (
@@ -48,7 +67,7 @@ export function Header() {
           <MandalaLogo size={44} />
           <span className="uppercase tracking-wider">AI Tools Directory</span>
         </Link>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <Show when="signed-out">
             <SignInButton mode="modal">
               <Button
@@ -60,15 +79,18 @@ export function Header() {
             </SignInButton>
           </Show>
           <Show when="signed-in">
-            <UserButton appearance={clerkAppearance}>
-              <UserButton.MenuItems>
-                <UserButton.Link
-                  label="My saved tools"
-                  href="/saved-tools"
-                  labelIcon={<Bookmark className="size-4" />}
-                />
-              </UserButton.MenuItems>
-            </UserButton>
+            <div className="flex items-center gap-2">
+              <UserInfo />
+              <UserButton appearance={clerkAppearance}>
+                <UserButton.MenuItems>
+                  <UserButton.Link
+                    label="My saved tools"
+                    href="/saved-tools"
+                    labelIcon={<Bookmark className="size-4" />}
+                  />
+                </UserButton.MenuItems>
+              </UserButton>
+            </div>
           </Show>
           <Button
             size="sm"
