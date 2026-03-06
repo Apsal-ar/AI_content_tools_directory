@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
+import { CircuitGrid } from "@/components/CircuitGrid";
 import { Search, Filter, ChevronDown } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
@@ -134,91 +135,8 @@ export function ToolsSection() {
       {/* Hero Section - black background */}
       <section className="relative overflow-hidden bg-black px-4 pt-24 pb-16 sm:px-6 sm:pt-28 lg:px-8 lg:pt-32">
 
-        {/* Circuit grid decoration — hidden on mobile */}
-        <div
-          className="pointer-events-none absolute inset-0 hidden md:block"
-          style={{ zIndex: 0 }}
-          aria-hidden="true"
-        >
-          {/* Grid layer — horizontal center fade mask */}
-          <div
-            className="absolute inset-0"
-            style={{
-              backgroundImage: [
-                "linear-gradient(rgba(0,255,200,0.08) 1px, transparent 1px)",
-                "linear-gradient(90deg, rgba(0,255,200,0.08) 1px, transparent 1px)",
-              ].join(", "),
-              backgroundSize: "44px 44px",
-              WebkitMaskImage:
-                "linear-gradient(to right, black 0%, black 20%, transparent 38%, transparent 62%, black 80%, black 100%)",
-              maskImage:
-                "linear-gradient(to right, black 0%, black 20%, transparent 38%, transparent 62%, black 80%, black 100%)",
-            }}
-          />
-
-          {/* Vertical fade overlay — dissolves grid before title text and filter bar */}
-          <div
-            className="absolute inset-0 pointer-events-none"
-            style={{
-              background:
-                "linear-gradient(to bottom, rgba(5,5,18,0.4) 0%, transparent 12%, transparent 60%, rgba(5,5,18,0.8) 80%, rgba(5,5,18,1) 100%)",
-            }}
-          />
-
-          {/* Glowing nodes — left side intersection points */}
-          {[
-            { left: "3.1%",  top: "12.5%" },
-            { left: "12.4%", top: "28.1%" },
-            { left: "6.2%",  top: "46.8%" },
-            { left: "18.6%", top: "15.6%" },
-            { left: "21.7%", top: "59.3%" },
-            { left: "9.3%",  top: "71.8%" },
-            { left: "15.5%", top: "84.3%" },
-            { left: "3.1%",  top: "87.5%" },
-          ].map((pos, i) => (
-            <div
-              key={`node-l-${i}`}
-              style={{
-                position: "absolute",
-                left: pos.left,
-                top: pos.top,
-                width: 4,
-                height: 4,
-                borderRadius: "50%",
-                background: "rgba(0,255,200,0.5)",
-                boxShadow: "0 0 6px rgba(0,255,200,0.5)",
-                transform: "translate(-50%, -50%)",
-              }}
-            />
-          ))}
-
-          {/* Glowing nodes — right side intersection points */}
-          {[
-            { right: "3.1%",  top: "18.7%" },
-            { right: "12.4%", top: "9.3%"  },
-            { right: "6.2%",  top: "37.5%" },
-            { right: "18.6%", top: "53.1%" },
-            { right: "21.7%", top: "25.0%" },
-            { right: "9.3%",  top: "65.6%" },
-            { right: "15.5%", top: "78.1%" },
-            { right: "3.1%",  top: "90.6%" },
-          ].map((pos, i) => (
-            <div
-              key={`node-r-${i}`}
-              style={{
-                position: "absolute",
-                right: pos.right,
-                top: pos.top,
-                width: 4,
-                height: 4,
-                borderRadius: "50%",
-                background: "rgba(0,255,200,0.5)",
-                boxShadow: "0 0 6px rgba(0,255,200,0.5)",
-                transform: "translate(50%, -50%)",
-              }}
-            />
-          ))}
-        </div>
+        {/* Circuit grid decoration — canvas-based, hidden on mobile */}
+        <CircuitGrid />
 
         <div className="relative mx-auto max-w-4xl" style={{ zIndex: 1 }}>
           {/* Logo */}
