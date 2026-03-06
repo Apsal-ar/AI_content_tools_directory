@@ -135,13 +135,39 @@ export function CircuitGrid() {
     ctx.restore();
   };
 
+  const applyOpacity = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const vw = window.innerWidth;
+    if (vw < 480) {
+      canvas.style.display = "none";
+    } else {
+      canvas.style.display = "block";
+      let opacity: number;
+      if (vw >= 1024) {
+        opacity = 1.0;
+      } else if (vw >= 768) {
+        // 1.0 → 0.4 as width goes 1024 → 768
+        opacity = 0.4 + ((vw - 768) / (1024 - 768)) * 0.6;
+      } else {
+        // 0.4 → 0.1 as width goes 768 → 480
+        opacity = 0.1 + ((vw - 480) / (768 - 480)) * 0.3;
+      }
+      canvas.style.opacity = String(opacity);
+    }
+  };
+
   useEffect(() => {
     draw();
+    applyOpacity();
 
     const container = containerRef.current;
     if (!container) return;
 
-    const observer = new ResizeObserver(() => draw());
+    const observer = new ResizeObserver(() => {
+      draw();
+      applyOpacity();
+    });
     observer.observe(container);
     return () => observer.disconnect();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -150,7 +176,7 @@ export function CircuitGrid() {
   return (
     <div
       ref={containerRef}
-      className="pointer-events-none absolute inset-0 hidden md:block"
+      className="pointer-events-none absolute inset-0"
       style={{ zIndex: 0 }}
       aria-hidden="true"
     >
