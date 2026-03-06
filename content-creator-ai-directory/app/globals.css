@@ -137,5 +137,11 @@
   }
   body {
     @apply bg-background text-foreground font-sans;
+    background-image: radial-gradient(
+      circle,
+      rgba(255, 255, 255, 0.08) 1px,
+      transparent 1px
+    );
+    background-size: 28px 28px;
   }
 }

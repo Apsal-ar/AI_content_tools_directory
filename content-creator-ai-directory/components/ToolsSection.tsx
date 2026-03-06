@@ -135,16 +135,27 @@ export function ToolsSection() {
       <section className="bg-black px-4 pt-24 pb-16 sm:px-6 sm:pt-28 lg:px-8 lg:pt-32">
         <div className="mx-auto max-w-4xl">
           {/* Logo */}
-          <div className="mb-12 flex justify-center sm:mb-16">
+          <div className="mb-6 flex justify-center sm:mb-8">
             <MandalaLogo size={120} className="shrink-0" />
           </div>
 
           {/* Title and subtitle */}
           <div className="text-center">
             <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl md:text-5xl">
-              The latest AI tools for content creators
+              The latest{" "}
+              <span
+                style={{
+                  background: "linear-gradient(90deg, #ffffff, var(--teal-bright))",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                }}
+              >
+                AI tools
+              </span>{" "}
+              for content creators
             </h1>
-            <p className="mt-4 text-lg text-white/80 sm:text-xl">
+            <p className="mt-4 text-lg text-white/65 sm:text-xl">
               Search and filter through hundreds of the top AI tools launching
               every day.
             </p>
@@ -168,6 +179,17 @@ export function ToolsSection() {
             </div>
           </div>
         </div>
+
+        {/* Cyan divider */}
+        <div
+          className="w-full"
+          style={{
+            height: 1,
+            background:
+              "linear-gradient(90deg, transparent 0%, var(--teal-bright) 50%, transparent 100%)",
+            opacity: 0.4,
+          }}
+        />
 
         {/* Filter bar — individual pills, full width matching tools grid */}
         <div className="mx-auto mt-8 max-w-[1280px]">
