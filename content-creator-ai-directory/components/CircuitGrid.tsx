@@ -15,7 +15,6 @@ export function CircuitGrid() {
     const h = container.offsetHeight;
     if (w === 0 || h === 0) return;
 
-    // Set physical pixel size, respecting device pixel ratio for sharpness
     const dpr = window.devicePixelRatio ?? 1;
     canvas.width = w * dpr;
     canvas.height = h * dpr;
@@ -29,104 +28,120 @@ export function CircuitGrid() {
     ctx.clearRect(0, 0, w, h);
 
     const CELL = 44;
+    const cx = w / 2;
+    const cy = h / 2;
+    const rx = w * 0.32; // ellipse horizontal radius
+    const ry = h * 0.45; // ellipse vertical radius
 
-    // ─── Helper: alpha at (x, y) from fading rules ─────────────────────────
-    const fadeAlpha = (x: number, y: number): number => {
-      // Horizontal fade
-      const leftFade  = 0.38 * w; // zero-alpha point coming from left
-      const rightFade = 0.62 * w; // zero-alpha point coming from right
-      let hAlpha: number;
-      if (x <= leftFade) {
-        hAlpha = 1 - x / leftFade;          // 1 at edge → 0 at 38%
-      } else if (x >= rightFade) {
-        hAlpha = (x - rightFade) / (w - rightFade); // 0 at 62% → 1 at edge
-      } else {
-        hAlpha = 0;                          // fully transparent in center
-      }
+    const FADE = 90;   // px fade zone near ellipse boundary
+    const BASE = 0.10; // base line opacity
 
-      // Vertical fade
-      const topFadeEnd    = 0.05 * h;
-      const bottomFadeStart = 0.75 * h;
-      let vAlpha: number;
-      if (y <= topFadeEnd) {
-        vAlpha = y / topFadeEnd;             // slight fade at very top
-      } else if (y >= bottomFadeStart) {
-        vAlpha = 1 - (y - bottomFadeStart) / (h - bottomFadeStart); // fade out bottom 25%
-      } else {
-        vAlpha = 1;
-      }
-
-      return hAlpha * vAlpha;
+    // ─── Ellipse boundary helpers ───────────────────────────────────────────
+    // Returns left/right boundary x at a given y (or null when outside ellipse vertically)
+    const getBoundaries = (y: number): { left: number; right: number } | null => {
+      const dy = (y - cy) / ry;
+      if (Math.abs(dy) >= 1) return null; // outside ellipse vertically
+      const curveOffset = rx * Math.sqrt(1 - dy * dy);
+      return { left: cx - curveOffset, right: cx + curveOffset };
     };
 
-    // ─── Draw grid lines column-by-column / row-by-row at per-pixel alpha ──
-    // For performance, draw full lines then erase with a gradient composite.
+    // Alpha for a point at (x, y) based on distance to nearest ellipse boundary
+    const edgeAlpha = (x: number, y: number): number => {
+      const b = getBoundaries(y);
+      if (!b) return BASE; // row is outside ellipse vertically — full opacity
+      if (x >= b.left && x <= b.right) return 0; // inside ellipse
+      const dist = x < b.left ? b.left - x : x - b.right;
+      return BASE * Math.min(1, dist / FADE);
+    };
 
-    // Draw all grid lines at full color first
-    ctx.save();
-    ctx.strokeStyle = "rgba(0,255,200,0.10)";
+    // ─── Vertical fade alpha ────────────────────────────────────────────────
+    const vAlpha = (y: number): number => {
+      if (y <= 0.05 * h) return y / (0.05 * h);
+      if (y >= 0.75 * h) return 1 - (y - 0.75 * h) / (h * 0.25);
+      return 1;
+    };
+
+    // ─── Draw horizontal lines with smooth gradient fade at ellipse boundary ─
     ctx.lineWidth = 1;
 
-    // Vertical lines
-    for (let x = 0; x <= w; x += CELL) {
-      ctx.beginPath();
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, h);
-      ctx.stroke();
-    }
-    // Horizontal lines
     for (let y = 0; y <= h; y += CELL) {
+      const b = getBoundaries(y);
+
+      if (!b) {
+        // Full line at full opacity (row outside ellipse vertically)
+        ctx.strokeStyle = `rgba(0,255,200,${BASE})`;
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(w, y);
+        ctx.stroke();
+        continue;
+      }
+
+      // Draw full line using a gradient that fades near the ellipse boundaries
+      const fadeStart = Math.max(0, b.left - FADE);
+      const fadeEnd   = Math.min(w, b.right + FADE);
+      const grad = ctx.createLinearGradient(0, 0, w, 0);
+      grad.addColorStop(0,                 `rgba(0,255,200,${BASE})`);
+      if (fadeStart / w > 0)
+        grad.addColorStop(fadeStart / w,   `rgba(0,255,200,${BASE})`);
+      grad.addColorStop(b.left / w,        "rgba(0,255,200,0)");
+      grad.addColorStop(b.right / w,       "rgba(0,255,200,0)");
+      if (fadeEnd / w < 1)
+        grad.addColorStop(fadeEnd / w,     `rgba(0,255,200,${BASE})`);
+      grad.addColorStop(1,                 `rgba(0,255,200,${BASE})`);
+
+      ctx.strokeStyle = grad;
       ctx.beginPath();
       ctx.moveTo(0, y);
       ctx.lineTo(w, y);
       ctx.stroke();
     }
-    ctx.restore();
 
-    // Erase center band using destination-out gradient (horizontal)
+    // ─── Draw vertical lines: per-CELL segment with smooth fade alpha ────────
+    for (let x = 0; x <= w; x += CELL) {
+      // Draw in cell-height segments so alpha can vary with y
+      for (let y = 0; y <= h; y += CELL) {
+        const midY  = y + CELL / 2;
+        const alpha = edgeAlpha(x, midY);
+        if (alpha <= 0) continue;
+        ctx.strokeStyle = `rgba(0,255,200,${alpha})`;
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x, Math.min(y + CELL, h));
+        ctx.stroke();
+      }
+    }
+
+    // ─── Vertical fade via destination-out ─────────────────────────────────
     ctx.save();
     ctx.globalCompositeOperation = "destination-out";
-    const hGrad = ctx.createLinearGradient(0, 0, w, 0);
-    hGrad.addColorStop(0,    "rgba(0,0,0,0)");   // left edge: keep
-    hGrad.addColorStop(0.20, "rgba(0,0,0,0)");   // still fully kept
-    hGrad.addColorStop(0.38, "rgba(0,0,0,1)");   // start erasing
-    hGrad.addColorStop(0.62, "rgba(0,0,0,1)");   // fully erased (center)
-    hGrad.addColorStop(0.80, "rgba(0,0,0,0)");   // restore right side
-    hGrad.addColorStop(1,    "rgba(0,0,0,0)");   // right edge: keep
-    ctx.fillStyle = hGrad;
-    ctx.fillRect(0, 0, w, h);
-
-    // Erase with vertical fade (top & bottom)
     const vGrad = ctx.createLinearGradient(0, 0, 0, h);
-    vGrad.addColorStop(0,    "rgba(0,0,0,1)");   // erase very top
-    vGrad.addColorStop(0.05, "rgba(0,0,0,0)");   // keep from 5%
-    vGrad.addColorStop(0.75, "rgba(0,0,0,0)");   // start erasing bottom
-    vGrad.addColorStop(1,    "rgba(0,0,0,1)");   // fully erased at bottom
+    vGrad.addColorStop(0,    "rgba(0,0,0,1)");  // erase very top
+    vGrad.addColorStop(0.05, "rgba(0,0,0,0)");  // keep from 5%
+    vGrad.addColorStop(0.75, "rgba(0,0,0,0)");  // start erasing bottom
+    vGrad.addColorStop(1,    "rgba(0,0,0,1)");  // fully erased at bottom
     ctx.fillStyle = vGrad;
     ctx.fillRect(0, 0, w, h);
     ctx.restore();
 
-    // ─── Draw glowing dots at every 3rd intersection, sides only ───────────
-    const leftBoundary  = 0.30 * w;
-    const rightBoundary = 0.70 * w;
-
+    // ─── Glowing dots: outside the ellipse, every 3rd intersection ──────────
     ctx.save();
     for (let x = 0; x <= w; x += CELL) {
       for (let y = 0; y <= h; y += CELL) {
-        // Only every 3rd intersection column-wise (offset by column index)
         const col = Math.round(x / CELL);
         const row = Math.round(y / CELL);
         if ((col + row) % 3 !== 0) continue;
 
-        // Only on the sides
-        if (x > leftBoundary && x < rightBoundary) continue;
+        const lineA = edgeAlpha(x, y) / BASE; // 0–1 multiplier from ellipse fade
+        if (lineA <= 0) continue;
 
-        const alpha = fadeAlpha(x, y);
-        if (alpha <= 0) continue;
+        const va = vAlpha(y);
+        if (va <= 0) continue;
 
-        ctx.shadowBlur = 6;
-        ctx.shadowColor = `rgba(0,255,200,${0.6 * alpha})`;
-        ctx.fillStyle   = `rgba(0,255,200,${0.5 * alpha})`;
+        const combined = lineA * va;
+        ctx.shadowBlur  = 6;
+        ctx.shadowColor = `rgba(0,255,200,${0.6 * combined})`;
+        ctx.fillStyle   = `rgba(0,255,200,${0.5 * combined})`;
         ctx.beginPath();
         ctx.arc(x, y, 2, 0, Math.PI * 2);
         ctx.fill();
